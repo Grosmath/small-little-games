@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le mot du jour 💗</title>
+<style>
+  :root{
+    --rose:        #ffd9e4;
+    --rose-clair:  #fff2f6;
+    --rose-fonce:  #ff6f9c;
+    --rose-profond:#e8437a;
+    --texte:       #7a3350;
+    --blanc:       #ffffff;
+    --bien:        #e8437a;   /* lettre bien placée */
+    --mal:         #ffc95c;   /* lettre mal placée  */
+    --absent:      #d9c3cc;   /* lettre absente     */
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  body{
+    font-family:"Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    color:var(--texte);
+    background:
+      radial-gradient(circle at 20% 10%, #fff 0%, transparent 45%),
+      radial-gradient(circle at 85% 90%, #ffe6ee 0%, transparent 50%),
+      linear-gradient(160deg, var(--rose-clair) 0%, var(--rose) 100%);
+    min-height:100vh;
+    min-height:100dvh;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  .motif{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'>\
+<path d='M20 32c-6-5-11-9-11-15a7 7 0 0 1 12-5 7 7 0 0 1 12 5c0 6-5 10-11 15l-1 1z' fill='%23ff9dbd' opacity='0.22'/>\
+<path d='M60 72c-6-5-11-9-11-15a7 7 0 0 1 12-5 7 7 0 0 1 12 5c0 6-5 10-11 15l-1 1z' fill='%23ffb3cc' opacity='0.18'/>\
+</svg>");
+    background-size:80px 80px;
+  }
+
+  .coeurs{ position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:1; }
+  .coeur-flottant{
+    position:absolute; bottom:-50px; opacity:0;
+    animation:monte linear forwards; user-select:none;
+  }
+  @keyframes monte{
+    0%{ transform:translateY(0) scale(.7); opacity:0; }
+    15%{ opacity:.8; }
+    100%{ transform:translateY(-105vh) rotate(var(--tourne)) scale(1.1); opacity:0; }
+  }
+
+  .page{
+    position:relative; z-index:2;
+    max-width:560px; margin:0 auto;
+    padding:18px 14px 28px;
+    display:flex; flex-direction:column; min-height:100vh; min-height:100dvh;
+  }
+
+  /* ---------- en-tête ---------- */
+  header{ text-align:center; margin-bottom:14px; }
+  .retour{
+    display:inline-block; font-size:13px; color:#b9758f;
+    text-decoration:none; margin-bottom:8px;
+  }
+  .retour:hover{ text-decoration:underline; }
+  h1{
+    font-size:clamp(22px,5.5vw,30px); font-weight:800;
+    color:var(--rose-profond); letter-spacing:-.02em;
+  }
+  .date{ font-size:12.5px; color:#b9758f; margin-top:3px; font-style:italic; }
+
+  .stats{
+    display:flex; gap:8px; justify-content:center; margin-top:12px;
+  }
+  .stat{
+    background:rgba(255,255,255,.75); border:1px solid rgba(255,255,255,.9);
+    border-radius:14px; padding:7px 13px; min-width:74px;
+    box-shadow:0 6px 16px -10px rgba(232,67,122,.5);
+  }
+  .stat b{ display:block; font-size:19px; color:var(--rose-profond); line-height:1.15; }
+  .stat span{ font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:#b9758f; }
+
+  /* ---------- grille ---------- */
+  .grille{
+    display:flex; flex-direction:column; gap:6px;
+    align-items:center; margin:20px 0 14px;
+  }
+  .ligne{ display:flex; gap:6px; }
+  .case{
+    width:var(--case); height:var(--case);
+    display:flex; align-items:center; justify-content:center;
+    font-size:calc(var(--case) * .52); font-weight:800;
+    background:rgba(255,255,255,.8);
+    border:2px solid #ffd0e0; border-radius:12px;
+    color:var(--texte); text-transform:uppercase;
+    transition:transform .12s ease;
+  }
+  .case.vide-point::after{
+    content:"•"; color:#e9bfcf; font-size:calc(var(--case) * .4);
+  }
+  .case.donnee{ background:#fff; border-color:var(--rose-fonce); color:var(--rose-profond); }
+  .case.saisie{ border-color:var(--rose-fonce); background:#fff; }
+  .case.pop{ animation:pop .16s ease; }
+  @keyframes pop{ 50%{ transform:scale(1.13); } }
+
+  .case.bien, .case.mal, .case.absent{
+    color:#fff; border-color:transparent;
+    animation:retourne .5s ease both;
+  }
+  .case.bien  { background:var(--bien); }
+  .case.mal   { background:var(--mal); color:#6b4a12; }
+  .case.absent{ background:var(--absent); }
+  @keyframes retourne{
+    0%  { transform:rotateX(0deg);   }
+    45% { transform:rotateX(90deg);  }
+    100%{ transform:rotateX(0deg);   }
+  }
+
+  .ligne.secoue{ animation:secoue .4s ease; }
+  @keyframes secoue{
+    10%,90%{ transform:translateX(-4px); }
+    30%,70%{ transform:translateX(7px);  }
+    50%    { transform:translateX(-7px); }
+  }
+
+  /* ---------- indices ---------- */
+  .indices{ display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+  .indice{
+    background:rgba(255,255,255,.78); border:1px dashed #ffc2d6;
+    border-radius:14px; padding:11px 14px; font-size:14px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .indice .texte{ flex:1; font-style:italic; }
+  .indice.verrouille{ opacity:.6; font-size:13px; }
+  .indice button{
+    background:var(--rose-fonce); color:#fff; border:none; border-radius:999px;
+    padding:7px 14px; font-size:12.5px; font-weight:700; cursor:pointer;
+    font-family:inherit; white-space:nowrap;
+  }
+  .indice button:disabled{ background:#e2c3ce; cursor:not-allowed; }
+
+  .message{
+    text-align:center; font-size:14px; min-height:20px;
+    margin-bottom:10px; font-weight:600; color:var(--rose-profond);
+  }
+
+  /* ---------- clavier ---------- */
+  .clavier{ margin-top:auto; display:flex; flex-direction:column; gap:6px; }
+  .rangee{ display:flex; gap:5px; justify-content:center; }
+  .touche{
+    flex:1 1 0; max-width:42px; height:48px;
+    display:flex; align-items:center; justify-content:center;
+    background:#fff; border:1px solid #ffd9e4; border-radius:9px;
+    font-size:15px; font-weight:700; color:var(--texte);
+    cursor:pointer; user-select:none; font-family:inherit;
+    box-shadow:0 2px 5px -2px rgba(122,51,80,.35);
+    transition:transform .1s ease, background .15s ease;
+  }
+  .touche:active{ transform:scale(.93); }
+  .touche.large{ flex:1.6 1 0; max-width:74px; font-size:12.5px; }
+  .touche.bien  { background:var(--bien);   color:#fff; border-color:transparent; }
+  .touche.mal   { background:var(--mal);    color:#6b4a12; border-color:transparent; }
+  .touche.absent{ background:var(--absent); color:#fff; border-color:transparent; opacity:.75; }
+
+  /* ---------- fin de partie ---------- */
+  .fin{
+    background:rgba(255,255,255,.86); border:1px solid #fff;
+    border-radius:22px; padding:20px 18px; text-align:center;
+    box-shadow:0 20px 46px -22px rgba(232,67,122,.5);
+    margin-bottom:14px;
+    animation:apparait .5s cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes apparait{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; } }
+  .fin h2{ font-size:22px; color:var(--rose-profond); margin-bottom:6px; }
+  .fin .mot-revele{
+    font-size:26px; font-weight:800; letter-spacing:.06em;
+    color:var(--rose-profond); margin:10px 0;
+  }
+  .fin p{ font-size:14px; color:#a9647f; line-height:1.6; }
+  .fin .gain{
+    display:inline-block; margin-top:10px; padding:7px 16px;
+    background:linear-gradient(135deg,var(--rose-fonce),var(--rose-profond));
+    color:#fff; border-radius:999px; font-weight:800; font-size:15px;
+  }
+  .actions{ display:flex; gap:9px; justify-content:center; margin-top:14px; flex-wrap:wrap; }
+  .actions button{
+    font-family:inherit; font-size:14px; font-weight:700; cursor:pointer;
+    padding:11px 20px; border-radius:999px; border:none;
+    background:linear-gradient(135deg,var(--rose-fonce),var(--rose-profond)); color:#fff;
+    box-shadow:0 8px 18px -8px rgba(232,67,122,.8);
+  }
+  .actions button.secondaire{
+    background:#fff; color:#c47c96; border:2px solid #ffd0e0; box-shadow:none;
+  }
+  .compte{ font-size:12.5px; color:#b9758f; margin-top:11px; }
+  .compte b{ color:var(--rose-profond); font-variant-numeric:tabular-nums; }
+
+  .erreur{
+    background:#fff3f6; border:1px solid #ffc2d6; border-radius:16px;
+    padding:18px; font-size:14px; line-height:1.6;
+  }
+  .erreur code{
+    background:#ffe6ee; padding:2px 6px; border-radius:5px; font-size:13px;
+  }
+
+  @media (max-width:400px){
+    .touche{ height:44px; max-width:36px; font-size:14px; }
+    .touche.large{ max-width:62px; font-size:11px; }
+    .stat{ min-width:66px; padding:6px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="motif"></div>
+<div class="coeurs" id="coeurs"></div>
+
+<div class="page">
+  <header>
+    <a class="retour" href="index.html">← retour</a>
+    <h1>Le mot du jour 💗</h1>
+    <div class="date" id="date"></div>
+    <div class="stats">
+      <div class="stat"><b id="s-points">0</b><span>points</span></div>
+      <div class="stat"><b id="s-serie">0</b><span>série 🔥</span></div>
+      <div class="stat"><b id="s-trouves">0</b><span>trouvés</span></div>
+    </div>
+  </header>
+
+  <main id="contenu"></main>
+</div>
+
+<script src="mots.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  /* =====================================================================
+     Outils
+     ===================================================================== */
+  const $ = (id) => document.getElementById(id);
+
+  const sansAccents = (s) =>
+    s.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
+
+  function depuisBase64(b64) {
+    const binaire = atob(b64);
+    const octets = Uint8Array.from(binaire, (c) => c.charCodeAt(0));
+    return new TextDecoder().decode(octets);
+  }
+
+  /** Date locale au format AAAA-MM-JJ (surtout pas toISOString, qui est en UTC
+      et changerait de jour en pleine soirée). */
+  function cleDuJour(d) {
+    const j = d || new Date();
+    const mm = String(j.getMonth() + 1).padStart(2, "0");
+    const jj = String(j.getDate()).padStart(2, "0");
+    return j.getFullYear() + "-" + mm + "-" + jj;
+  }
+
+  function dateLisible(cle) {
+    const [a, m, j] = cle.split("-").map(Number);
+    return new Date(a, m - 1, j).toLocaleDateString("fr-FR", {
+      weekday: "long", day: "numeric", month: "long",
+    });
+  }
+
+  /* =====================================================================
+     Sauvegarde locale
+     ===================================================================== */
+  const CLE_STATS = "motdujour:stats";
+  const clePartie = (jour) => "motdujour:partie:" + jour;
+
+  function lire(cle, defaut) {
+    try {
+      const brut = localStorage.getItem(cle);
+      return brut ? JSON.parse(brut) : defaut;
+    } catch (e) {
+      return defaut;              // navigation privée, quota, JSON abîmé
+    }
+  }
+  function ecrire(cle, valeur) {
+    try { localStorage.setItem(cle, JSON.stringify(valeur)); } catch (e) { /* tant pis */ }
+  }
+
+  const stats = lire(CLE_STATS, {
+    points: 0, serie: 0, joues: 0, trouves: 0, dernierGagne: null,
+  });
+
+  /* =====================================================================
+     Le mot du jour
+     ===================================================================== */
+  const JOUR = cleDuJour();
+  $("date").textContent = dateLisible(JOUR);
+
+  function motDuJour() {
+    if (typeof CALENDRIER === "undefined" || typeof RESERVE === "undefined") {
+      return null;                                    // mots.js n'a pas chargé
+    }
+    if (CALENDRIER[JOUR]) return depuisBase64(CALENDRIER[JOUR]);
+
+    // Pas de mot prévu : on pioche dans la réserve, en tournant avec les jours.
+    const jours = Math.floor(new Date(JOUR).getTime() / 86400000);
+    return depuisBase64(RESERVE[((jours % RESERVE.length) + RESERVE.length) % RESERVE.length]);
+  }
+
+  let brut;
+  try {
+    brut = motDuJour();
+  } catch (e) {
+    brut = null;
+  }
+
+  if (!brut) {
+    $("contenu").innerHTML =
+      '<div class="erreur"><b>Le fichier des mots n\'a pas pu être chargé.</b><br><br>' +
+      'Vérifie que <code>mots.js</code> se trouve bien dans le même dossier que ' +
+      '<code>jeu.html</code>, puis recharge la page.</div>';
+    return;
+  }
+
+  const donnees   = JSON.parse(brut);
+  const MOT_AFFICHE = donnees.m.toUpperCase();      // avec ses accents
+  const SECRET      = sansAccents(donnees.m);       // ce qu'on tape vraiment
+  const INDICES     = donnees.i || [];
+  const TAILLE      = SECRET.length;
+  const MAX_ESSAIS  = 6;
+  const SEUILS      = [2, 4];                       // essais requis par indice
+  const POINTS      = [100, 80, 65, 50, 35, 25];    // selon l'essai gagnant
+  const COUT_INDICE = 5;
+
+  /* =====================================================================
+     État de la partie (repris tel quel si elle recharge la page)
+     ===================================================================== */
+  const partie = lire(clePartie(JOUR), {
+    essais: [], termine: false, gagne: false, indices: 0, gain: 0,
+  });
+
+  let saisie = [];
+  let verrous = new Array(TAILLE).fill(null);
+  verrous[0] = SECRET[0];                            // la 1re lettre est donnée
+
+  /** Colore un essai. Deux passes, pour gérer correctement les lettres
+      en double : une lettre déjà comptée en « bien placée » ne peut pas
+      ressortir en « mal placée ». */
+  function evaluer(essai) {
+    const res = new Array(TAILLE).fill("absent");
+    const restantes = {};
+
+    for (let i = 0; i < TAILLE; i++) {
+      if (essai[i] === SECRET[i]) res[i] = "bien";
+      else restantes[SECRET[i]] = (restantes[SECRET[i]] || 0) + 1;
+    }
+    for (let i = 0; i < TAILLE; i++) {
+      if (res[i] === "bien") continue;
+      if (restantes[essai[i]] > 0) { res[i] = "mal"; restantes[essai[i]]--; }
+    }
+    return res;
+  }
+
+  // On rejoue les essais déjà faits pour retrouver les lettres verrouillées.
+  partie.essais.forEach((essai) => {
+    evaluer(essai).forEach((r, i) => { if (r === "bien") verrous[i] = essai[i]; });
+  });
+  saisie = verrous.slice();
+
+  /* =====================================================================
+     Construction de la page
+     ===================================================================== */
+  $("contenu").innerHTML =
+    '<div class="grille" id="grille"></div>' +
+    '<div id="apres"></div>' +
+    '<div class="message" id="message"></div>' +
+    '<div class="indices" id="indices"></div>' +
+    '<div class="clavier" id="clavier"></div>';
+
+  document.documentElement.style.setProperty(
+    "--case",
+    "min(52px, calc((100vw - " + (28 + (TAILLE - 1) * 6) + "px) / " + TAILLE + "))"
+  );
+
+  let animeDerniereLigne = false;
+
+  function dessinerGrille() {
+    const g = $("grille");
+    g.innerHTML = "";
+
+    for (let l = 0; l < MAX_ESSAIS; l++) {
+      const ligne = document.createElement("div");
+      ligne.className = "ligne";
+
+      for (let c = 0; c < TAILLE; c++) {
+        const cellule = document.createElement("div");
+        cellule.className = "case";
+
+        if (l < partie.essais.length) {
+          const essai = partie.essais[l];
+          const etat = evaluer(essai)[c];
+          cellule.textContent = essai[c];
+          cellule.classList.add(etat);
+          // seule la ligne qui vient d'être validée se retourne
+          const derniere = l === partie.essais.length - 1;
+          if (derniere && animeDerniereLigne) cellule.style.animationDelay = (c * 0.09) + "s";
+          else cellule.style.animation = "none";
+        } else if (l === partie.essais.length && !partie.termine) {
+          if (saisie[c]) {
+            cellule.textContent = saisie[c];
+            cellule.classList.add(verrous[c] ? "donnee" : "saisie");
+          } else {
+            cellule.classList.add("vide-point");
+          }
+        } else if (verrous[c] && !partie.termine) {
+          cellule.textContent = verrous[c];
+          cellule.classList.add("donnee");
+          cellule.style.opacity = ".45";
+        } else {
+          cellule.classList.add("vide-point");
+        }
+        ligne.appendChild(cellule);
+      }
+      g.appendChild(ligne);
+    }
+    animeDerniereLigne = false;
+  }
+
+  /* ---------- clavier ---------- */
+  const RANGEES = [
+    "AZERTYUIOP".split(""),
+    "QSDFGHJKLM".split(""),
+    ["ENTREE", "W", "X", "C", "V", "B", "N", "RETOUR"],
+  ];
+
+  function etatDesLettres() {
+    const ordre = { absent: 0, mal: 1, bien: 2 };
+    const etats = {};
+    partie.essais.forEach((essai) => {
+      evaluer(essai).forEach((r, i) => {
+        const l = essai[i];
+        if (etats[l] === undefined || ordre[r] > ordre[etats[l]]) etats[l] = r;
+      });
+    });
+    return etats;
+  }
+
+  function dessinerClavier() {
+    const clavier = $("clavier");
+    clavier.innerHTML = "";
+    const etats = etatDesLettres();
+
+    RANGEES.forEach((rangee) => {
+      const div = document.createElement("div");
+      div.className = "rangee";
+      rangee.forEach((touche) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "touche" + (touche.length > 1 ? " large" : "");
+        b.textContent = touche === "ENTREE" ? "Entrée" : touche === "RETOUR" ? "⌫" : touche;
+        if (etats[touche]) b.classList.add(etats[touche]);
+        b.addEventListener("click", () => jouerTouche(touche));
+        div.appendChild(b);
+      });
+      clavier.appendChild(div);
+    });
+  }
+
+  /* ---------- indices ---------- */
+  function dessinerIndices() {
+    const zone = $("indices");
+    zone.innerHTML = "";
+
+    INDICES.forEach((texte, n) => {
+      const div = document.createElement("div");
+      div.className = "indice";
+      const devoile = partie.indices > n || partie.termine;
+      const dispo = partie.essais.length >= SEUILS[n];
+
+      if (devoile) {
+        div.innerHTML = '<span>💡</span><span class="texte"></span>';
+        div.querySelector(".texte").textContent = texte;
+      } else if (dispo) {
+        div.innerHTML =
+          '<span>💡</span><span class="texte">Indice ' + (n + 1) + ' disponible</span>' +
+          '<button type="button">Voir (−' + COUT_INDICE + ' pts)</button>';
+        div.querySelector("button").addEventListener("click", () => {
+          partie.indices = n + 1;
+          sauver();
+          dessinerIndices();
+        });
+      } else {
+        div.className = "indice verrouille";
+        div.innerHTML =
+          '<span>🔒</span><span class="texte">Indice ' + (n + 1) +
+          ' — après ' + SEUILS[n] + ' essais</span>';
+      }
+      zone.appendChild(div);
+    });
+  }
+
+  /* =====================================================================
+     Saisie
+     ===================================================================== */
+  let bloque = false;
+
+  function jouerTouche(touche) {
+    if (partie.termine || bloque) return;
+
+    if (touche === "RETOUR") {
+      for (let i = TAILLE - 1; i >= 0; i--) {
+        if (saisie[i] && !verrous[i]) { saisie[i] = null; break; }
+      }
+      dessinerGrille();
+      return;
+    }
+
+    if (touche === "ENTREE") { valider(); return; }
+
+    const libre = saisie.indexOf(null);
+    if (libre === -1) return;                          // ligne pleine
+    saisie[libre] = touche;
+    dessinerGrille();
+
+    const cases = $("grille").children[partie.essais.length];
+    if (cases) {
+      const c = cases.children[libre];
+      c.classList.add("pop");
+      c.addEventListener("animationend", () => c.classList.remove("pop"), { once: true });
+    }
+  }
+
+  function annoncer(txt, secouer) {
+    $("message").textContent = txt;
+    if (secouer) {
+      const ligne = $("grille").children[partie.essais.length];
+      if (ligne) {
+        ligne.classList.add("secoue");
+        ligne.addEventListener("animationend", () => ligne.classList.remove("secoue"), { once: true });
+      }
+    }
+  }
+
+  function valider() {
+    if (saisie.indexOf(null) !== -1) {
+      annoncer("Il manque des lettres !", true);
+      return;
+    }
+
+    const essai = saisie.join("");
+    if (partie.essais.indexOf(essai) !== -1) {
+      annoncer("Tu as déjà essayé ce mot 😅", true);
+      return;
+    }
+
+    partie.essais.push(essai);
+    evaluer(essai).forEach((r, i) => { if (r === "bien") verrous[i] = essai[i]; });
+    saisie = verrous.slice();
+
+    animeDerniereLigne = true;
+    bloque = true;
+    annoncer("");
+    dessinerGrille();
+    dessinerClavier();
+
+    const gagne = essai === SECRET;
+    const fini = gagne || partie.essais.length >= MAX_ESSAIS;
+
+    setTimeout(() => {
+      bloque = false;
+      if (fini) terminer(gagne);
+      else { dessinerIndices(); sauver(); }
+    }, TAILLE * 90 + 380);
+  }
+
+  /* =====================================================================
+     Fin de partie
+     ===================================================================== */
+  function terminer(gagne) {
+    partie.termine = true;
+    partie.gagne = gagne;
+
+    let gain = 0;
+    let bonus = 0;
+    if (gagne) {
+      gain = POINTS[partie.essais.length - 1] - partie.indices * COUT_INDICE;
+      gain = Math.max(5, gain);
+
+      // La série ne compte que les jours consécutifs.
+      const hier = cleDuJour(new Date(Date.now() - 86400000));
+      stats.serie = stats.dernierGagne === hier ? stats.serie + 1 : 1;
+      stats.dernierGagne = JOUR;
+      stats.trouves += 1;
+      bonus = Math.min(stats.serie, 7) * 5;
+      gain += bonus;
+    } else {
+      stats.serie = 0;
+    }
+
+    partie.gain = gain;
+    stats.points += gain;
+    stats.joues += 1;
+    ecrire(CLE_STATS, stats);
+    sauver();
+
+    afficherStats();
+    dessinerGrille();
+    dessinerIndices();
+    if (gagne) pluieDeCoeurs();
+    afficherFin(bonus);
+  }
+
+  function afficherFin(bonus) {
+    const gagne = partie.gagne;
+    const n = partie.essais.length;
+
+    const titres = ["Du premier coup ?! 😳", "Incroyable 🤩", "Bravo 💖",
+                    "Bien joué 💕", "Ouf, trouvé 😅", "À la dernière seconde 😮‍💨"];
+
+    let html = '<div class="fin">';
+    if (gagne) {
+      html += "<h2>" + titres[n - 1] + "</h2>";
+      html += '<p>Trouvé en ' + n + (n > 1 ? " essais" : " essai") + ".</p>";
+      html += '<div class="mot-revele">' + MOT_AFFICHE + "</div>";
+      html += '<div class="gain">+' + partie.gain + " points</div>";
+      if (bonus) html += '<p style="margin-top:8px">dont +' + bonus + " de série 🔥</p>";
+    } else {
+      html += "<h2>Pas cette fois 🌸</h2>";
+      html += "<p>Le mot était :</p>";
+      html += '<div class="mot-revele">' + MOT_AFFICHE + "</div>";
+      html += "<p>Reviens demain, un nouveau mot t'attend.</p>";
+    }
+    html +=
+      '<div class="actions">' +
+      '<button type="button" id="partager">Partager le résultat 💌</button>' +
+      '<button type="button" class="secondaire" id="retour-accueil">Accueil</button>' +
+      "</div>" +
+      '<div class="compte">Prochain mot dans <b id="compte">…</b></div>' +
+      "</div>";
+
+    $("apres").innerHTML = html;
+    $("clavier").innerHTML = "";
+
+    $("partager").addEventListener("click", partager);
+    $("retour-accueil").addEventListener("click", () => { location.href = "index.html"; });
+    lancerCompteARebours();
+  }
+
+  function texteDePartage() {
+    const cases = { bien: "🟥", mal: "🟨", absent: "⬜" };
+    const grille = partie.essais
+      .map((e) => evaluer(e).map((r) => cases[r]).join(""))
+      .join("\n");
+
+    const entete = "💗 Le mot du jour — " + JOUR.split("-").reverse().join("/");
+    const bilan = partie.gagne
+      ? "Trouvé en " + partie.essais.length + "/" + MAX_ESSAIS +
+        " · +" + partie.gain + " pts · série " + stats.serie + " 🔥"
+      : "Pas trouvé cette fois 🌸";
+
+    return entete + "\n" + grille + "\n" + bilan;
+  }
+
+  function partager() {
+    const texte = texteDePartage();
+    const bouton = $("partager");
+
+    const ok = () => {
+      bouton.textContent = "Copié ! Envoie-le 💌";
+      setTimeout(() => { bouton.textContent = "Partager le résultat 💌"; }, 2500);
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(texte).then(ok, () => copieDeSecours(texte, ok));
+    } else {
+      copieDeSecours(texte, ok);
+    }
+  }
+
+  /** Sans HTTPS, navigator.clipboard n'existe pas : on passe par un textarea. */
+  function copieDeSecours(texte, ok) {
+    const z = document.createElement("textarea");
+    z.value = texte;
+    z.style.position = "fixed";
+    z.style.opacity = "0";
+    document.body.appendChild(z);
+    z.select();
+    try { document.execCommand("copy"); ok(); } catch (e) { alert(texte); }
+    z.remove();
+  }
+
+  function lancerCompteARebours() {
+    const cible = new Date();
+    cible.setHours(24, 0, 0, 0);                       // minuit prochain, en local
+
+    const tic = () => {
+      const el = $("compte");
+      if (!el) return;
+      let reste = Math.max(0, cible - Date.now());
+      const h = Math.floor(reste / 3600000);
+      const m = Math.floor((reste % 3600000) / 60000);
+      const s = Math.floor((reste % 60000) / 1000);
+      el.textContent = h + "h " + String(m).padStart(2, "0") + "m " +
+                       String(s).padStart(2, "0") + "s";
+      if (reste === 0) location.reload();
+    };
+    tic();
+    setInterval(tic, 1000);
+  }
+
+  /* =====================================================================
+     Décor
+     ===================================================================== */
+  const EMOJIS = ["💕", "💖", "💗", "💓", "❤️"];
+
+  function unCoeur() {
+    const c = document.createElement("span");
+    c.className = "coeur-flottant";
+    c.textContent = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+    c.style.left = Math.random() * 100 + "%";
+    c.style.fontSize = 14 + Math.random() * 18 + "px";
+    c.style.animationDuration = 7 + Math.random() * 6 + "s";
+    c.style.setProperty("--tourne", Math.random() * 100 - 50 + "deg");
+    $("coeurs").appendChild(c);
+    c.addEventListener("animationend", () => c.remove());
+  }
+  setInterval(unCoeur, 1600);
+  for (let i = 0; i < 5; i++) setTimeout(unCoeur, i * 500);
+
+  function pluieDeCoeurs() {
+    for (let i = 0; i < 40; i++) setTimeout(unCoeur, i * 55);
+  }
+
+  /* =====================================================================
+     Démarrage
+     ===================================================================== */
+  function sauver() { ecrire(clePartie(JOUR), partie); }
+
+  function afficherStats() {
+    $("s-points").textContent  = stats.points;
+    $("s-serie").textContent   = stats.serie;
+    $("s-trouves").textContent = stats.trouves;
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    if (e.key === "Enter")     { jouerTouche("ENTREE"); return; }
+    if (e.key === "Backspace") { e.preventDefault(); jouerTouche("RETOUR"); return; }
+    const l = sansAccents(e.key);
+    if (l.length === 1 && l >= "A" && l <= "Z") jouerTouche(l);
+  });
+
+  afficherStats();
+  dessinerGrille();
+  dessinerClavier();
+  dessinerIndices();
+
+  if (partie.termine) {
+    afficherFin(0);
+  } else if (partie.essais.length) {
+    annoncer("On reprend où tu t'étais arrêtée 💗");
+  }
+})();
+</script>
+</body>
+</html>
