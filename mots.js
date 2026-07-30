@@ -2,18 +2,17 @@
    LES MOTS DU JEU
    =====================================================================
 
-   Pour ajouter le mot d'un jour : ouvre admin.html, remplis le formulaire,
-   copie la ligne generee et colle-la dans CALENDRIER ci-dessous.
+   Pour ajouter le mot d'un jour : ouvrir admin.html, remplir le formulaire,
+   copier la ligne generée et coller dans CALENDRIER ci-dessous.
 
    Les mots sont encodes en base64 pour ne pas etre lisibles ici d'un simple
-   coup d'oeil. Ce n'est pas du chiffrement : quelqu'un de motive peut les
-   decoder. C'est juste la pour retirer la tentation.
+   coup d'oeil. Ce n'est pas du chiffrement, c'est juste la pour retirer la tentation.
 
    Format d'une ligne :  "AAAA-MM-JJ": "chaine-encodee",
    ===================================================================== */
 
 const CALENDRIER = {
-  "2026-07-30": "eyJtIjoiQ8OCTElOUyIsImkiOlsiQ2UgcXVlIGplIHRlIHZvbGUgbGUgbWF0aW4iLCJFdCBqJ2VuIHZldXggdG91am91cnMgdW4gZGUgcGx1cyJdfQ==",
+  "2026-07-30": "eyJtIjoiQkFSQ0VMT05FIiwiaSI6WyJMw6Agb8O5IGxlcyBtb2ppdG9zIHNvbnQgdW4gcGV1IHRyb3AgY2hhcmfDqXMiLCJOb3RyZSBwcmVtaWVyIGRhdGUgKG5vbiBvZmZpY2llbC4uLikiXX0=",
   "2026-07-31": "eyJtIjoiU09VUklSRSIsImkiOlsiTGEgcHJlbWnDqHJlIGNob3NlIHF1ZSBqJ2FpIHJlbWFycXXDqWUiLCJUdSBsZSBmYWlzIHNhbnMgdCdlbiByZW5kcmUgY29tcHRlIl19",
   "2026-08-01": "eyJtIjoiw4lUT0lMRVMiLCJpIjpbIk9uIGxlcyByZWdhcmRlIHF1YW5kIGxhIG51aXQgZXN0IGNsYWlyZSIsIklsIHkgZW4gYSBwbGVpbiBkYW5zIHRlcyB5ZXV4Il19",
   "2026-08-02": "eyJtIjoiQ0hPQ09MQVQiLCJpIjpbIlRhIGZhaWJsZXNzZSBhc3N1bcOpZSIsIk5vaXIsIGF1IGxhaXQgb3UgYmxhbmMgPyJdfQ==",
@@ -32,7 +31,7 @@ const RESERVE = [
   "eyJtIjoiUFJJTlRFTVBTIiwiaSI6WyJMYSBzYWlzb24gZGVzIGZsZXVycyIsIkp1c3RlIGFwcsOocyBsJ2hpdmVyIl19",
   "eyJtIjoiUEFQSUxMT04iLCJpIjpbIklsIHZvbGUgZGUgZmxldXIgZW4gZmxldXIiLCJKJ2VuIGFpIGRhbnMgbGUgdmVudHJlIGF2YW50IGRlIHRlIHZvaXIiXX0=",
   "eyJtIjoiw4lURVJOSVTDiSIsImkiOlsiTGUgdGVtcHMgcXVlIGplIHZldXggcGFzc2VyIGF2ZWMgdG9pIiwiUGx1cyBsb25nIHF1ZSB0csOocyBsb25ndGVtcHMiXX0=",
-  "eyJtIjoiQ0jDiVJJRSIsImkiOlsiQ29tbWVudCBqZSB0J2FwcGVsbGUiLCJTaXggbGV0dHJlcywgdHLDqHMgc291dmVudCB1dGlsaXPDqWVzIl19",
+  "eyJtIjoiQ0jDiVJJRSIsImkiOlsiQ29tbWVudCBqZSB0J2FwcGVsbGUrLCJTaXggbGV0dHJlcywgdHLDqHMgc291dmVudCB1dGlsaXPDqWVzIl19",
   "eyJtIjoiUEFTU0lPTiIsImkiOlsiQ2UgcXVpIGJyw7tsZSBldCBuZSBzJ8OpdGVpbnQgcGFzIiwiw4dhIG5lIHNlIGNvbW1hbmRlIHBhcyJdfQ==",
   "eyJtIjoiUFJPTUVTU0UiLCJpIjpbIlF1ZWxxdWUgY2hvc2UgcXUnb24gdGllbnQiLCJKZSB0J2VuIGFpIGZhaXQgcXVlbHF1ZXMtdW5lcyJdfQ==",
   "eyJtIjoiU09MRUlMIiwiaSI6WyJUdSBlcyBsZSBtaWVuIiwiSWwgc2UgbMOodmUgY2hhcXVlIG1hdGluIl19",
