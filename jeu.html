@@ -233,7 +233,15 @@
   <main id="contenu"></main>
 </div>
 
-<script src="mots.js"></script>
+<script>
+  /* On charge mots.js avec un paramètre anti-cache.
+     Sans lui, GitHub Pages renvoie « Cache-Control: max-age=600 » : après un
+     commit, le navigateur peut continuer à servir l'ancien fichier pendant une
+     dizaine de minutes, et afficher le mot de la veille.
+     document.write est volontaire ici : il insère le script de façon
+     synchrone, donc mots.js est bien chargé avant le code du jeu ci-dessous. */
+  document.write('<script src="mots.js?v=' + Date.now() + '"><\/script>');
+</script>
 <script>
 (function () {
   "use strict";
@@ -286,6 +294,19 @@
     try { localStorage.setItem(cle, JSON.stringify(valeur)); } catch (e) { /* tant pis */ }
   }
 
+  /* Ouvre « jeu.html?reset » pour effacer parties et scores de test avant de
+     lui envoyer le lien. Impossible à déclencher par accident : il faut taper
+     l'adresse à la main. */
+  if (location.search.indexOf("reset") !== -1) {
+    try {
+      Object.keys(localStorage)
+        .filter((c) => c.indexOf("motdujour:") === 0)
+        .forEach((c) => localStorage.removeItem(c));
+    } catch (e) { /* stockage indisponible */ }
+    location.replace(location.pathname);
+    return;
+  }
+
   const stats = lire(CLE_STATS, {
     points: 0, serie: 0, joues: 0, trouves: 0, dernierGagne: null,
   });
@@ -335,9 +356,24 @@
   /* =====================================================================
      État de la partie (repris tel quel si elle recharge la page)
      ===================================================================== */
-  const partie = lire(clePartie(JOUR), {
+  /** Empreinte courte du mot. Elle sert à repérer que le mot du jour a changé
+      (typiquement quand tu corriges mots.js après un test) pour ne pas rejouer
+      d'anciens essais sur un nouveau mot. On stocke cette empreinte plutôt que
+      le mot lui-même, pour ne pas laisser la réponse en clair dans le
+      navigateur. */
+  function empreinte(s) {
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+    return h.toString(36);
+  }
+
+  const nouvellePartie = () => ({
     essais: [], termine: false, gagne: false, indices: 0, gain: 0,
+    e: empreinte(SECRET),
   });
+
+  let partie = lire(clePartie(JOUR), null) || nouvellePartie();
+  if (partie.e !== empreinte(SECRET)) partie = nouvellePartie();   // le mot a changé
 
   let saisie = [];
   let verrous = new Array(TAILLE).fill(null);
