@@ -61,9 +61,12 @@
 
   /* ---------- en-tête ---------- */
   header{ text-align:center; margin-bottom:14px; }
+  .liens{
+    display:flex; justify-content:center; gap:16px; margin-bottom:8px;
+  }
   .retour{
     display:inline-block; font-size:13px; color:#b9758f;
-    text-decoration:none; margin-bottom:8px;
+    text-decoration:none;
   }
   .retour:hover{ text-decoration:underline; }
   h1{
@@ -220,7 +223,10 @@
 
 <div class="page">
   <header>
-    <a class="retour" href="index.html">← retour</a>
+    <div class="liens">
+      <a class="retour" href="index.html">← accueil</a>
+      <a class="retour" href="croises.html">mots croisés →</a>
+    </div>
     <h1>Le mot du jour 💗</h1>
     <div class="date" id="date"></div>
     <div class="stats">
@@ -294,9 +300,9 @@
     try { localStorage.setItem(cle, JSON.stringify(valeur)); } catch (e) { /* tant pis */ }
   }
 
-  /* Ouvre « jeu.html?reset » pour effacer parties et scores de test avant de
-     lui envoyer le lien. Impossible à déclencher par accident : il faut taper
-     l'adresse à la main. */
+  /* Le paramètre « ?reset » vide les parties et les scores enregistrés.
+     Volontairement absent de l'interface : il faut l'ajouter à l'adresse
+     à la main, donc aucun risque de déclenchement accidentel. */
   if (location.search.indexOf("reset") !== -1) {
     try {
       Object.keys(localStorage)
@@ -354,13 +360,13 @@
   const COUT_INDICE = 5;
 
   /* =====================================================================
-     État de la partie (repris tel quel si elle recharge la page)
+     État de la partie, restauré tel quel au rechargement de la page
      ===================================================================== */
-  /** Empreinte courte du mot. Elle sert à repérer que le mot du jour a changé
-      (typiquement quand tu corriges mots.js après un test) pour ne pas rejouer
-      d'anciens essais sur un nouveau mot. On stocke cette empreinte plutôt que
-      le mot lui-même, pour ne pas laisser la réponse en clair dans le
-      navigateur. */
+  /** Empreinte courte du mot du jour. Elle permet de détecter qu'un mot a été
+      modifié dans mots.js après le début d'une partie, et d'éviter ainsi de
+      rejouer d'anciens essais sur un nouveau mot. C'est l'empreinte qui est
+      stockée, et non le mot, afin de ne pas laisser la réponse en clair dans
+      le navigateur. */
   function empreinte(s) {
     let h = 5381;
     for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
