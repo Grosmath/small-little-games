@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mots croisés — Joaillerie</title>
+<style>
+  :root{
+    --fond:          #fbfcfe;
+    --bleu-voile:    #eef4fc;
+    --bleu-clair:    #dbe8f8;
+    --bleu:          #a8c5e8;
+    --bleu-profond:  #3f6396;
+    --violet-voile:  #f3effb;
+    --violet-clair:  #e6dcf6;
+    --violet:        #b9a5dc;
+    --violet-profond:#61498f;
+    --texte:         #2b3346;
+    --gris:          #8b93a6;
+    --rouge:         #c2456a;
+    --case:          38px;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  body{
+    font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
+    color:var(--texte);
+    background:
+      radial-gradient(circle at 12% 8%,  #f0f5fd 0%, transparent 42%),
+      radial-gradient(circle at 88% 92%, #f2ecfb 0%, transparent 45%),
+      var(--fond);
+    min-height:100vh;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  .motif{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'>\
+<g fill='none' stroke='%23a8c5e8' stroke-width='1' opacity='0.30'>\
+<path d='M24 14 L33 23 L24 40 L15 23 Z'/><path d='M15 23 L33 23'/><path d='M24 14 L24 23'/>\
+</g>\
+<g fill='none' stroke='%23b9a5dc' stroke-width='1' opacity='0.24'>\
+<path d='M72 58 L81 67 L72 84 L63 67 Z'/><path d='M63 67 L81 67'/><path d='M72 58 L72 67'/>\
+</g></svg>");
+    background-size:96px 96px;
+  }
+
+  .page{
+    position:relative; z-index:1;
+    max-width:620px; margin:0 auto;
+    padding:22px 14px 40px;
+  }
+
+  /* ---------- en-tête ---------- */
+  header{ text-align:center; margin-bottom:20px; }
+  .surtitre{
+    font-size:11px; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--violet); font-weight:700;
+  }
+  h1{
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:clamp(26px,6.5vw,38px); font-weight:400;
+    letter-spacing:.03em; color:var(--bleu-profond);
+    margin:7px 0 4px;
+  }
+  .date{ font-size:12.5px; color:var(--gris); font-style:italic; }
+
+  /* ---------- barre chrono ---------- */
+  .barre{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px; flex-wrap:wrap;
+    background:rgba(255,255,255,.85);
+    border:1px solid var(--bleu-clair); border-radius:14px;
+    padding:11px 14px; margin-bottom:16px;
+    box-shadow:0 8px 22px -16px rgba(63,99,150,.6);
+  }
+  .chrono{ display:flex; align-items:baseline; gap:9px; }
+  .chrono b{
+    font-size:24px; font-weight:700; color:var(--bleu-profond);
+    font-variant-numeric:tabular-nums; letter-spacing:.02em;
+  }
+  .chrono small{ font-size:11px; color:var(--gris); }
+  .chrono .penalite{ color:var(--rouge); font-weight:700; }
+
+  .outils{ display:flex; gap:7px; }
+  .outils button{
+    font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer;
+    padding:8px 13px; border-radius:999px;
+    background:#fff; color:var(--bleu-profond);
+    border:1.5px solid var(--bleu-clair);
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .outils button:hover:not(:disabled){ background:var(--bleu-voile); border-color:var(--bleu); }
+  .outils button:disabled{ opacity:.4; cursor:not-allowed; }
+
+  /* ---------- grille ---------- */
+  .grille-zone{ overflow-x:auto; padding:4px 0 10px; }
+  .grille{
+    display:grid; gap:2px; margin:0 auto; width:max-content;
+  }
+  .case{
+    width:var(--case); height:var(--case);
+    position:relative; border-radius:3px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:calc(var(--case) * .5); font-weight:700;
+    background:#fff; border:1.5px solid var(--bleu-clair);
+    color:var(--texte); cursor:pointer; user-select:none;
+    transition:background .12s ease, border-color .12s ease;
+  }
+  .case.absente{ background:none; border:none; cursor:default; }
+  .case .num{
+    position:absolute; top:1px; left:3px;
+    font-size:calc(var(--case) * .28); font-weight:700;
+    color:var(--violet); line-height:1;
+  }
+  .case.mot-actif{ background:var(--bleu-voile); border-color:var(--bleu); }
+  .case.choisie{ background:var(--violet-clair); border-color:var(--violet); }
+  .case.fausse{ color:var(--rouge); border-color:var(--rouge); }
+  .case.revelee{ color:var(--violet-profond); }
+  .case.gagnee{
+    background:var(--violet-voile); border-color:var(--violet);
+    color:var(--violet-profond); animation:brille .5s ease both;
+  }
+  @keyframes brille{ 50%{ transform:scale(1.1); } }
+
+  /* champ invisible : sert à ouvrir le clavier du téléphone */
+  #saisie{
+    position:fixed; top:0; left:0;
+    width:1px; height:1px; opacity:0; border:0; padding:0;
+    font-size:16px;                   /* < 16px ferait zoomer iOS */
+  }
+
+  /* ---------- indice actif ---------- */
+  .indice-actif{
+    background:linear-gradient(135deg,var(--bleu-voile),var(--violet-voile));
+    border:1px solid var(--bleu-clair); border-radius:14px;
+    padding:13px 16px; margin-bottom:18px; min-height:58px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .indice-actif .puce{
+    flex:none; width:30px; height:30px; border-radius:50%;
+    background:#fff; border:1.5px solid var(--violet);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:14px; color:var(--violet-profond);
+  }
+  .indice-actif .txt{ font-size:14px; line-height:1.5; }
+  .indice-actif .sens{
+    display:block; font-size:10.5px; text-transform:uppercase;
+    letter-spacing:.12em; color:var(--gris); margin-bottom:2px;
+  }
+  .indice-actif.rien{ color:var(--gris); font-size:13.5px; font-style:italic; }
+
+  /* ---------- listes d'indices ---------- */
+  .listes{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  @media (max-width:560px){ .listes{ grid-template-columns:1fr; } }
+
+  .listes h2{
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:14px; font-weight:400; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--violet-profond);
+    padding-bottom:7px; margin-bottom:9px;
+    border-bottom:1px solid var(--bleu-clair);
+  }
+  .listes li{
+    list-style:none; font-size:13.5px; line-height:1.5;
+    padding:7px 9px; border-radius:9px; cursor:pointer;
+    display:flex; gap:9px; transition:background .13s ease;
+  }
+  .listes li:hover{ background:var(--bleu-voile); }
+  .listes li.actif{ background:var(--violet-voile); }
+  .listes li.faite{ opacity:.45; }
+  .listes li.faite .num{ text-decoration:line-through; }
+  .listes .num{ font-weight:700; color:var(--violet); flex:none; }
+
+  /* ---------- fin ---------- */
+  .fin{
+    background:#fff; border:1px solid var(--violet-clair); border-radius:18px;
+    padding:22px 18px; text-align:center; margin-bottom:18px;
+    box-shadow:0 18px 40px -24px rgba(97,73,143,.55);
+    animation:apparait .5s cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes apparait{ from{ opacity:0; transform:translateY(12px); } to{ opacity:1; } }
+  .fin h2{
+    font-family:Georgia,"Times New Roman",serif; font-weight:400;
+    font-size:24px; color:var(--violet-profond); margin-bottom:8px;
+  }
+  .fin .temps{
+    font-size:38px; font-weight:700; color:var(--bleu-profond);
+    font-variant-numeric:tabular-nums; margin:10px 0 4px;
+  }
+  .fin p{ font-size:13.5px; color:var(--gris); line-height:1.6; }
+  .fin .record{
+    display:inline-block; margin-top:11px; padding:6px 15px; border-radius:999px;
+    background:var(--violet-voile); color:var(--violet-profond);
+    font-size:12.5px; font-weight:700;
+  }
+  .fin button{
+    font-family:inherit; font-size:14px; font-weight:700; cursor:pointer;
+    margin-top:16px; padding:12px 24px; border-radius:999px; border:none;
+    background:linear-gradient(135deg,var(--bleu),var(--violet));
+    color:#fff; box-shadow:0 10px 22px -10px rgba(97,73,143,.8);
+  }
+
+  .message{
+    text-align:center; font-size:13px; font-weight:600;
+    color:var(--violet-profond); min-height:19px; margin-bottom:10px;
+  }
+
+  /* ---------- pied de page ---------- */
+  footer{
+    margin-top:34px; padding-top:18px;
+    border-top:1px solid var(--bleu-clair);
+    text-align:center; font-size:13px;
+  }
+  footer a{
+    color:var(--bleu-profond); text-decoration:none;
+    padding:7px 15px; border-radius:999px; display:inline-block;
+    border:1px solid var(--bleu-clair); background:#fff;
+  }
+  footer a:hover{ background:var(--bleu-voile); }
+
+  .erreur{
+    background:#fff; border:1px solid var(--bleu-clair); border-radius:14px;
+    padding:18px; font-size:14px; line-height:1.6;
+  }
+  .erreur code{ background:var(--bleu-voile); padding:2px 6px; border-radius:5px; font-size:13px; }
+</style>
+</head>
+<body>
+
+<div class="motif"></div>
+
+<div class="page">
+  <header>
+    <div class="surtitre">Mots croisés</div>
+    <h1 id="theme">…</h1>
+    <div class="date" id="date"></div>
+  </header>
+
+  <main id="contenu"></main>
+
+  <!-- Lien vers les autres jeux, désactivé pour que cette page puisse être
+       partagée seule. Décommenter le bloc ci-dessous pour le rétablir.
+  <footer>
+    <a href="jeu.html">Le mot du jour →</a>
+  </footer>
+  -->
+</div>
+
+<script>
+  /* Paramètre anti-cache : GitHub Pages sert les fichiers avec
+     « Cache-Control: max-age=600 », donc une grille modifiée pourrait mettre
+     dix minutes à apparaître. document.write charge le script de façon
+     synchrone, avant le code du jeu ci-dessous. */
+  document.write('<script src="grilles.js?v=' + Date.now() + '"><\/script>');
+</script>
+<script>
+(function () {
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+
+  function depuisBase64(b64) {
+    const binaire = atob(b64);
+    const octets = Uint8Array.from(binaire, (c) => c.charCodeAt(0));
+    return new TextDecoder().decode(octets);
+  }
+
+  /* Date locale : surtout pas toISOString, qui bascule de jour en UTC. */
+  function cleDuJour(d) {
+    const j = d || new Date();
+    return j.getFullYear() + "-" +
+      String(j.getMonth() + 1).padStart(2, "0") + "-" +
+      String(j.getDate()).padStart(2, "0");
+  }
+
+  function chrono(secondes) {
+    const m = Math.floor(secondes / 60);
+    const s = Math.floor(secondes % 60);
+    return m + ":" + String(s).padStart(2, "0");
+  }
+
+  const JOUR = cleDuJour();
+  $("date").textContent = new Date(JOUR + "T12:00:00")
+    .toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+
+  /* =====================================================================
+     Chargement de la grille
+     ===================================================================== */
+  let grille = null;
+  try {
+    if (typeof GRILLES !== "undefined") {
+      const dispo = Object.keys(GRILLES).sort();
+      // la grille du jour, sinon la plus récente déjà publiée
+      const choisie = GRILLES[JOUR]
+        ? JOUR
+        : dispo.filter((d) => d <= JOUR).pop() || dispo[0];
+      if (choisie) grille = JSON.parse(depuisBase64(GRILLES[choisie]));
+    }
+  } catch (e) { grille = null; }
+
+  if (!grille) {
+    $("contenu").innerHTML =
+      '<div class="erreur"><b>La grille n\'a pas pu être chargée.</b><br><br>' +
+      'Vérifie que <code>grilles.js</code> est bien dans le même dossier que ' +
+      '<code>croises.html</code>, puis recharge la page.</div>';
+    return;
+  }
+
+  const MOTS = grille.m;
+  const NL = grille.l, NC = grille.c;
+  $("theme").textContent = grille.t;
+
+  /* =====================================================================
+     Construction du plan de la grille
+     ===================================================================== */
+  const cle = (r, c) => r + "," + c;
+
+  const cellulesDe = (mot) => {
+    const out = [];
+    for (let k = 0; k < mot.m.length; k++) {
+      out.push({
+        r: mot.r + (mot.d === "v" ? k : 0),
+        c: mot.c + (mot.d === "h" ? k : 0),
+      });
+    }
+    return out;
+  };
+
+  const solution = {};                       // "r,c" -> lettre attendue
+  MOTS.forEach((mot) => {
+    cellulesDe(mot).forEach((p, k) => { solution[cle(p.r, p.c)] = mot.m[k]; });
+  });
+
+  // numérotation classique : lecture de gauche à droite, de haut en bas
+  const departs = [...new Set(MOTS.map((m) => cle(m.r, m.c)))].sort((a, b) => {
+    const [ra, ca] = a.split(",").map(Number);
+    const [rb, cb] = b.split(",").map(Number);
+    return ra - rb || ca - cb;
+  });
+  const numero = {};
+  departs.forEach((k, i) => { numero[k] = i + 1; });
+  MOTS.forEach((mot) => { mot.n = numero[cle(mot.r, mot.c)]; });
+
+  const motsSur = (r, c) =>
+    MOTS.filter((mot) => cellulesDe(mot).some((p) => p.r === r && p.c === c));
+
+  /* =====================================================================
+     État de la partie
+     ===================================================================== */
+  const CLE_PARTIE = "croises:partie:" + JOUR;
+  const CLE_RECORD = "croises:record:" + JOUR;
+
+  function lire(k, defaut) {
+    try { const b = localStorage.getItem(k); return b ? JSON.parse(b) : defaut; }
+    catch (e) { return defaut; }
+  }
+  function ecrire(k, v) {
+    try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* tant pis */ }
+  }
+
+  if (location.search.indexOf("reset") !== -1) {
+    try {
+      Object.keys(localStorage)
+        .filter((c) => c.indexOf("croises:") === 0)
+        .forEach((c) => localStorage.removeItem(c));
+    } catch (e) { /* stockage indisponible */ }
+    location.replace(location.pathname);
+    return;
+  }
+
+  const partie = lire(CLE_PARTIE, {
+    lettres: {}, revelees: [], ecoule: 0, penalites: 0, aides: 0,
+    demarre: false, fini: false,
+  });
+
+  let selection = null;                      // { r, c, d }
+  let fausses = {};                          // cases signalées par « Vérifier »
+  let enMarche = false;
+  let depart = 0;
+
+  const PENALITE_VERIF = 30;
+  const PENALITE_AIDE  = 60;
+
+  /* =====================================================================
+     Affichage
+     ===================================================================== */
+  $("contenu").innerHTML =
+    '<div class="barre">' +
+      '<div class="chrono"><b id="pendule">0:00</b><small id="detail"></small></div>' +
+      '<div class="outils">' +
+        '<button type="button" id="verifier">Vérifier (+30 s)</button>' +
+        '<button type="button" id="reveler">Révéler (+60 s)</button>' +
+      '</div>' +
+    '</div>' +
+    '<div id="apres"></div>' +
+    '<div class="message" id="message"></div>' +
+    '<div class="grille-zone"><div class="grille" id="grille"></div></div>' +
+    '<input id="saisie" type="text" autocomplete="off" autocorrect="off" ' +
+      'autocapitalize="characters" spellcheck="false" aria-label="Saisie">' +
+    '<div class="indice-actif rien" id="indice">Touche une case pour commencer. ' +
+      'Le chrono démarre à ce moment-là.</div>' +
+    '<div class="listes">' +
+      '<section><h2>Horizontalement</h2><ul id="liste-h"></ul></section>' +
+      '<section><h2>Verticalement</h2><ul id="liste-v"></ul></section>' +
+    '</div>';
+
+  document.documentElement.style.setProperty(
+    "--case", "min(40px, calc((100vw - " + (28 + (NC - 1) * 2) + "px) / " + NC + "))"
+  );
+
+  const zone = $("grille");
+  zone.style.gridTemplateColumns = "repeat(" + NC + ", var(--case))";
+
+  const cases = {};                          // "r,c" -> élément
+
+  function construireGrille() {
+    zone.innerHTML = "";
+    for (let r = 0; r < NL; r++) {
+      for (let c = 0; c < NC; c++) {
+        const el = document.createElement("div");
+        const k = cle(r, c);
+
+        if (!(k in solution)) {
+          el.className = "case absente";
+        } else {
+          el.className = "case";
+          if (numero[k]) {
+            const n = document.createElement("span");
+            n.className = "num";
+            n.textContent = numero[k];
+            el.appendChild(n);
+          }
+          const lettre = document.createElement("span");
+          lettre.className = "lettre";
+          el.appendChild(lettre);
+          el.addEventListener("mousedown", (e) => { e.preventDefault(); toucher(r, c); });
+          el.addEventListener("touchstart", (e) => { e.preventDefault(); toucher(r, c); }, { passive: false });
+          cases[k] = el;
+        }
+        zone.appendChild(el);
+      }
+    }
+  }
+
+  function motActif() {
+    if (!selection) return null;
+    return MOTS.find((mot) =>
+      mot.d === selection.d &&
+      cellulesDe(mot).some((p) => p.r === selection.r && p.c === selection.c)
+    ) || null;
+  }
+
+  function motFait(mot) {
+    return cellulesDe(mot).every((p) => partie.lettres[cle(p.r, p.c)] === solution[cle(p.r, p.c)]);
+  }
+
+  function rafraichir() {
+    const actif = motActif();
+    const dansActif = {};
+    if (actif) cellulesDe(actif).forEach((p) => { dansActif[cle(p.r, p.c)] = true; });
+
+    Object.keys(cases).forEach((k) => {
+      const el = cases[k];
+      const lettre = partie.lettres[k] || "";
+      el.querySelector(".lettre").textContent = lettre;
+
+      el.classList.toggle("mot-actif", !partie.fini && !!dansActif[k]);
+      el.classList.toggle("choisie",
+        !partie.fini && !!selection && k === cle(selection.r, selection.c));
+      el.classList.toggle("fausse", !!fausses[k]);
+      el.classList.toggle("revelee", partie.revelees.indexOf(k) !== -1);
+      el.classList.toggle("gagnee", partie.fini);
+    });
+
+    // bandeau de l'indice en cours
+    const bandeau = $("indice");
+    if (partie.fini) {
+      bandeau.className = "indice-actif rien";
+      bandeau.textContent = "Grille terminée. Bravo !";
+    } else if (actif) {
+      bandeau.className = "indice-actif";
+      bandeau.innerHTML =
+        '<span class="puce">' + actif.n + "</span>" +
+        '<span class="txt"><span class="sens">' +
+        (actif.d === "h" ? "Horizontalement" : "Verticalement") +
+        " · " + actif.m.length + " lettres</span></span>";
+      bandeau.querySelector(".txt").appendChild(document.createTextNode(actif.i));
+    } else {
+      bandeau.className = "indice-actif rien";
+      bandeau.textContent = "Touche une case pour commencer. Le chrono démarre à ce moment-là.";
+    }
+
+    // listes
+    ["h", "v"].forEach((sens) => {
+      const ul = $("liste-" + sens);
+      ul.innerHTML = "";
+      MOTS.filter((m) => m.d === sens)
+        .sort((a, b) => a.n - b.n)
+        .forEach((mot) => {
+          const li = document.createElement("li");
+          if (actif && actif === mot) li.classList.add("actif");
+          if (motFait(mot)) li.classList.add("faite");
+          const n = document.createElement("span");
+          n.className = "num";
+          n.textContent = mot.n + ".";
+          li.appendChild(n);
+          li.appendChild(document.createTextNode(mot.i));
+          li.addEventListener("click", () => {
+            selection = { r: mot.r, c: mot.c, d: mot.d };
+            const vide = cellulesDe(mot).find((p) => !partie.lettres[cle(p.r, p.c)]);
+            if (vide) selection = { r: vide.r, c: vide.c, d: mot.d };
+            demarrer();
+            rafraichir();
+            $("saisie").focus();
+          });
+          ul.appendChild(li);
+        });
+    });
+
+    $("verifier").disabled = partie.fini;
+    $("reveler").disabled = partie.fini;
+  }
+
+  /* =====================================================================
+     Sélection et saisie
+     ===================================================================== */
+  function toucher(r, c) {
+    const surCase = motsSur(r, c);
+    if (!surCase.length) return;
+
+    if (selection && selection.r === r && selection.c === c) {
+      // deuxième appui sur la même case : on bascule de sens
+      const autre = surCase.find((m) => m.d !== selection.d);
+      if (autre) selection = { r: r, c: c, d: autre.d };
+    } else {
+      const garde = surCase.find((m) => selection && m.d === selection.d);
+      selection = { r: r, c: c, d: (garde || surCase[0]).d };
+    }
+    demarrer();
+    rafraichir();
+    $("saisie").focus();
+  }
+
+  function avancer(pas) {
+    const actif = motActif();
+    if (!actif) return;
+    const suite = cellulesDe(actif);
+    const i = suite.findIndex((p) => p.r === selection.r && p.c === selection.c);
+    const j = i + pas;
+    if (j >= 0 && j < suite.length) {
+      selection = { r: suite[j].r, c: suite[j].c, d: actif.d };
+    }
+  }
+
+  function poser(lettre) {
+    if (partie.fini || !selection) return;
+    const k = cle(selection.r, selection.c);
+    if (partie.revelees.indexOf(k) !== -1) { avancer(1); rafraichir(); return; }
+
+    partie.lettres[k] = lettre;
+    delete fausses[k];
+    avancer(1);
+    sauver();
+    rafraichir();
+    verifierFin();
+  }
+
+  function effacer() {
+    if (partie.fini || !selection) return;
+    const k = cle(selection.r, selection.c);
+    if (partie.lettres[k] && partie.revelees.indexOf(k) === -1) {
+      delete partie.lettres[k];
+      delete fausses[k];
+    } else {
+      avancer(-1);
+      const k2 = cle(selection.r, selection.c);
+      if (partie.revelees.indexOf(k2) === -1) {
+        delete partie.lettres[k2];
+        delete fausses[k2];
+      }
+    }
+    sauver();
+    rafraichir();
+  }
+
+  /* Le champ invisible garde un caractère sentinelle : sur mobile, une touche
+     « retour » sur un champ vide ne déclenche pas toujours d'événement clavier.
+     En comparant la valeur à la sentinelle, on détecte les deux cas. */
+  const SENTINELLE = ".";
+  const champ = $("saisie");
+  champ.value = SENTINELLE;
+
+  champ.addEventListener("input", () => {
+    const v = champ.value;
+    champ.value = SENTINELLE;
+    if (v.length === 0) { effacer(); return; }
+
+    const lettres = v.replace(SENTINELLE, "")
+      .normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .toUpperCase().replace(/[^A-Z]/g, "");
+    for (const l of lettres) poser(l);
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.altKey || e.metaKey || partie.fini) return;
+
+    if (e.key === "Backspace") { e.preventDefault(); effacer(); return; }
+    if (e.key === " ")         { e.preventDefault(); if (selection) toucher(selection.r, selection.c); return; }
+
+    const fleches = { ArrowRight: [0, 1], ArrowLeft: [0, -1], ArrowUp: [-1, 0], ArrowDown: [1, 0] };
+    if (fleches[e.key] && selection) {
+      e.preventDefault();
+      const [dr, dc] = fleches[e.key];
+      let r = selection.r + dr, c = selection.c + dc;
+      while (r >= 0 && r < NL && c >= 0 && c < NC) {
+        if (cle(r, c) in solution) { toucher(r, c); return; }
+        r += dr; c += dc;
+      }
+      return;
+    }
+
+    const l = e.key.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
+    if (l.length === 1 && l >= "A" && l <= "Z") { e.preventDefault(); poser(l); }
+  });
+
+  /* =====================================================================
+     Chrono
+     ===================================================================== */
+  function demarrer() {
+    if (partie.fini || enMarche) return;
+    partie.demarre = true;
+    enMarche = true;
+    depart = Date.now();
+  }
+
+  function secondes() {
+    return partie.ecoule + (enMarche ? Math.floor((Date.now() - depart) / 1000) : 0);
+  }
+
+  function figer() {
+    if (!enMarche) return;
+    partie.ecoule += Math.floor((Date.now() - depart) / 1000);
+    enMarche = false;
+    sauver();
+  }
+
+  function afficherChrono() {
+    const t = secondes();
+    $("pendule").textContent = chrono(t + partie.penalites);
+    $("detail").innerHTML = partie.penalites
+      ? 'dont <span class="penalite">+' + chrono(partie.penalites) + "</span> de pénalités"
+      : (partie.demarre ? "" : "en attente");
+  }
+  setInterval(() => { if (!partie.fini) afficherChrono(); }, 500);
+
+  // mise en pause du chrono quand l'onglet passe en arrière-plan ou que
+  // l'écran se verrouille, sinon le temps continuerait de courir
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) figer();
+    else if (partie.demarre && !partie.fini) demarrer();
+  });
+  window.addEventListener("pagehide", figer);
+
+  /* =====================================================================
+     Aides
+     ===================================================================== */
+  $("verifier").addEventListener("click", () => {
+    if (partie.fini) return;
+    demarrer();
+    let n = 0;
+    fausses = {};
+    Object.keys(partie.lettres).forEach((k) => {
+      if (partie.lettres[k] !== solution[k]) { fausses[k] = true; n++; }
+    });
+    partie.penalites += PENALITE_VERIF;
+    sauver();
+    rafraichir();
+    afficherChrono();
+    annoncer(n === 0
+      ? "Aucune erreur pour l'instant."
+      : n + (n > 1 ? " lettres sont fausses." : " lettre est fausse."));
+  });
+
+  $("reveler").addEventListener("click", () => {
+    if (partie.fini) return;
+    if (!selection) { annoncer("Choisis d'abord une case."); return; }
+    demarrer();
+    const k = cle(selection.r, selection.c);
+    partie.lettres[k] = solution[k];
+    if (partie.revelees.indexOf(k) === -1) partie.revelees.push(k);
+    delete fausses[k];
+    partie.penalites += PENALITE_AIDE;
+    partie.aides += 1;
+    avancer(1);
+    sauver();
+    rafraichir();
+    afficherChrono();
+    verifierFin();
+  });
+
+  function annoncer(txt) {
+    $("message").textContent = txt;
+    clearTimeout(annoncer.t);
+    annoncer.t = setTimeout(() => { $("message").textContent = ""; }, 3500);
+  }
+
+  /* =====================================================================
+     Fin de partie
+     ===================================================================== */
+  function verifierFin() {
+    const complete = Object.keys(solution).every((k) => partie.lettres[k]);
+    if (!complete) return;
+
+    const juste = Object.keys(solution).every((k) => partie.lettres[k] === solution[k]);
+    if (!juste) { annoncer("La grille est pleine, mais il reste des erreurs."); return; }
+
+    figer();
+    partie.fini = true;
+    partie.total = partie.ecoule + partie.penalites;
+
+    const record = lire(CLE_RECORD, null);
+    const nouveau = record === null || partie.total < record;
+    if (nouveau) ecrire(CLE_RECORD, partie.total);
+
+    sauver();
+    rafraichir();
+    afficherFin(nouveau, record);
+  }
+
+  function afficherFin(nouveau, record) {
+    const t = partie.total !== undefined ? partie.total : partie.ecoule + partie.penalites;
+
+    let html = '<div class="fin"><h2>Grille résolue</h2>';
+    html += '<div class="temps">' + chrono(t) + "</div>";
+    html += "<p>" + MOTS.length + " mots trouvés";
+    if (partie.penalites) html += " · dont " + chrono(partie.penalites) + " de pénalités";
+    if (partie.aides) html += " · " + partie.aides + (partie.aides > 1 ? " lettres révélées" : " lettre révélée");
+    html += "</p>";
+    if (nouveau && record !== null) html += '<div class="record">Nouveau record du jour</div>';
+    html += '<button type="button" id="partager">Partager mon temps 💎</button>';
+    html += "</div>";
+
+    $("apres").innerHTML = html;
+    $("pendule").textContent = chrono(t);
+    $("partager").addEventListener("click", partager);
+  }
+
+  function texteDePartage() {
+    const t = partie.total !== undefined ? partie.total : partie.ecoule + partie.penalites;
+    let s = "💎 Mots croisés — " + grille.t + "\n";
+    s += "Grille du " + JOUR.split("-").reverse().join("/") + " · " + MOTS.length + " mots\n";
+    s += "Résolue en " + chrono(t);
+    if (partie.penalites) s += " (dont " + chrono(partie.penalites) + " de pénalités)";
+    if (partie.aides) s += "\n" + partie.aides + (partie.aides > 1 ? " lettres révélées" : " lettre révélée");
+    return s;
+  }
+
+  function partager() {
+    const texte = texteDePartage();
+    const b = $("partager");
+    const ok = () => {
+      b.textContent = "Copié ✓";
+      setTimeout(() => { b.textContent = "Partager mon temps 💎"; }, 2500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(texte).then(ok, () => secours(texte, ok));
+    } else secours(texte, ok);
+  }
+
+  /* Sans HTTPS, navigator.clipboard n'existe pas : on passe par un textarea. */
+  function secours(texte, ok) {
+    const z = document.createElement("textarea");
+    z.value = texte;
+    z.style.position = "fixed"; z.style.opacity = "0";
+    document.body.appendChild(z);
+    z.select();
+    try { document.execCommand("copy"); ok(); } catch (e) { alert(texte); }
+    z.remove();
+  }
+
+  /* =====================================================================
+     Démarrage
+     ===================================================================== */
+  function sauver() { ecrire(CLE_PARTIE, partie); }
+
+  construireGrille();
+  rafraichir();
+  afficherChrono();
+
+  if (partie.fini) {
+    afficherFin(false, lire(CLE_RECORD, null));
+  } else if (partie.demarre) {
+    annoncer("On reprend où tu t'étais arrêtée.");
+  }
+})();
+</script>
+</body>
+</html>
