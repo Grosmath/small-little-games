@@ -2,10 +2,15 @@
    LES MOTS DU JEU
    =====================================================================
 
-   Les mots sont encodes en base64 pour ne pas etre lisibles ici d'un simple
-   coup d'oeil. Ce n'est pas du chiffrement c'est juste la pour retirer la tentation.
-
+   CALENDRIER associe une date au mot propose ce jour-la.
    Format d'une ligne :  "AAAA-MM-JJ": "chaine-encodee",
+
+   Chaque chaine encode un objet { m: le mot, i: [indice 1, indice 2] }.
+   Les lignes encodees sont produites par admin.html.
+
+   L'encodage base64 sert uniquement a rendre les mots illisibles a la simple
+   lecture du fichier. Ce n'est pas du chiffrement : la chaine reste
+   decodable par qui s'en donne la peine.
    ===================================================================== */
 
 const CALENDRIER = {
@@ -18,8 +23,9 @@ const CALENDRIER = {
   "2026-08-05": "eyJtIjoiQk9OSEVVUiIsImkiOlsiQ2UgcXVlIHR1IG0nYXBwb3J0ZXMiLCJTaW1wbGUsIGV0IGltbWVuc2UiXX0=",
 };
 
-/* Liste de secours : utilisee automatiquement si aucun mot n'est prevu pour
-   la date du jour. Pas besoin d'y toucher. */
+/* Liste de secours, utilisee automatiquement quand aucun mot n'est prevu pour
+   la date du jour. L'index tourne avec le nombre de jours ecoules, ce qui
+   garantit qu'une date donnee tombe toujours sur le meme mot. */
 const RESERVE = [
   "eyJtIjoiQU1PVVIiLCJpIjpbIkxlIG1vdCBsZSBwbHVzIHNpbXBsZSBkdSBtb25kZSIsIkNpbnEgbGV0dHJlcywgdG91dCB1biBwcm9ncmFtbWUiXX0=",
   "eyJtIjoiQklTT1VTIiwiaSI6WyJDZSBxdWUgamUgdCdlbnZvaWUgcGFyIG1lc3NhZ2UiLCJUb3Vqb3VycyBhdSBwbHVyaWVsIl19",
