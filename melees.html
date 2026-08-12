@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Les mots mêlés du mercredi 💗</title>
+<style>
+  :root{
+    --rose:        #ffd9e4;
+    --rose-clair:  #fff2f6;
+    --rose-voile:  #fff7fa;
+    --rose-fonce:  #ff6f9c;
+    --rose-profond:#e8437a;
+    --texte:       #7a3350;
+    --gris:        #b9758f;
+    --case:        34px;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  body{
+    font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
+    color:var(--texte);
+    background:
+      radial-gradient(circle at 18% 8%,  #fff 0%, transparent 44%),
+      radial-gradient(circle at 86% 92%, #ffe6ee 0%, transparent 48%),
+      linear-gradient(160deg, var(--rose-clair) 0%, var(--rose) 100%);
+    min-height:100vh;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  .motif{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'>\
+<path d='M20 32c-6-5-11-9-11-15a7 7 0 0 1 12-5 7 7 0 0 1 12 5c0 6-5 10-11 15l-1 1z' fill='%23ff9dbd' opacity='0.20'/>\
+<path d='M60 72c-6-5-11-9-11-15a7 7 0 0 1 12-5 7 7 0 0 1 12 5c0 6-5 10-11 15l-1 1z' fill='%23ffb3cc' opacity='0.16'/>\
+</svg>");
+    background-size:80px 80px;
+  }
+
+  .coeurs{ position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:1; }
+  .coeur-flottant{
+    position:absolute; bottom:-50px; opacity:0;
+    animation:monte linear forwards; user-select:none;
+  }
+  @keyframes monte{
+    0%{ transform:translateY(0) scale(.7); opacity:0; }
+    15%{ opacity:.7; }
+    100%{ transform:translateY(-105vh) rotate(var(--tourne)) scale(1.1); opacity:0; }
+  }
+
+  /* barre de navigation, identique sur toutes les pages du site */
+  .nav{ position:fixed; top:14px; left:14px; z-index:60; }
+  .nav a{
+    display:inline-block;
+    padding:8px 15px;
+    border-radius:999px;
+    background:rgba(255,255,255,.85);
+    border:1px solid #ffd0e0;
+    color:#c47c96;
+    text-decoration:none;
+    font-size:13px;
+    font-weight:700;
+    box-shadow:0 6px 16px -10px rgba(232,67,122,.6);
+    -webkit-backdrop-filter:blur(6px);
+    backdrop-filter:blur(6px);
+  }
+  .nav a:hover{ background:#fff; color:var(--rose-profond); }
+
+  .page{
+    position:relative; z-index:2;
+    max-width:560px; margin:0 auto;
+    padding:58px 14px 34px;      /* place laissée à la barre de navigation */
+  }
+
+  /* ---------- en-tête ---------- */
+  header{ text-align:center; margin-bottom:16px; }
+  .surtitre{
+    font-size:11px; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--rose-fonce); font-weight:700;
+  }
+  h1{
+    font-size:clamp(23px,5.6vw,31px); font-weight:800; letter-spacing:-.02em;
+    color:var(--rose-profond); margin:7px 0 5px;
+  }
+  .theme{ font-size:15px; font-weight:700; color:var(--texte); }
+  .semaine{ font-size:12.5px; color:var(--gris); font-style:italic; margin-top:2px; }
+
+  /* ---------- barre chrono ---------- */
+  .barre{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px; flex-wrap:wrap;
+    background:rgba(255,255,255,.82);
+    border:1px solid #ffd0e0; border-radius:14px;
+    padding:10px 14px; margin-bottom:14px;
+    box-shadow:0 8px 22px -16px rgba(232,67,122,.65);
+  }
+  .chrono{ display:flex; align-items:baseline; gap:8px; }
+  .chrono b{
+    font-size:23px; font-weight:800; color:var(--rose-profond);
+    font-variant-numeric:tabular-nums;
+  }
+  .chrono small{ font-size:11px; color:var(--gris); }
+  .chrono .penalite{ color:#c2456a; font-weight:700; }
+  .compteur{
+    font-size:12px; font-weight:700; color:var(--rose-fonce);
+    background:var(--rose-clair); padding:5px 12px; border-radius:999px;
+  }
+  .outils button{
+    font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer;
+    padding:8px 13px; border-radius:999px;
+    background:#fff; color:#c47c96; border:1.5px solid #ffd0e0;
+  }
+  .outils button:hover:not(:disabled){ background:var(--rose-voile); border-color:var(--rose-fonce); }
+  .outils button:disabled{ opacity:.4; cursor:not-allowed; }
+
+  /* ---------- la grille ---------- */
+  .grille-zone{ overflow-x:auto; padding:2px 0 12px; }
+  .grille{
+    display:grid; gap:2px; margin:0 auto; width:max-content;
+    touch-action:none;              /* le glissé sélectionne, il ne fait pas défiler */
+    user-select:none; -webkit-user-select:none;
+  }
+  .case{
+    width:var(--case); height:var(--case);
+    display:flex; align-items:center; justify-content:center;
+    font-size:calc(var(--case) * .5); font-weight:700;
+    background:rgba(255,255,255,.85);
+    border:1px solid #ffe0eb; border-radius:6px;
+    color:var(--texte); cursor:pointer;
+    transition:background .12s ease, color .12s ease, transform .12s ease;
+  }
+  .case.selection{
+    background:var(--rose-clair);
+    border-color:var(--rose-fonce);
+    transform:scale(1.06);
+  }
+  .case.trouve{
+    background:linear-gradient(135deg,var(--rose-fonce),var(--rose-profond));
+    border-color:transparent; color:#fff;
+  }
+  .case.revele{
+    background:linear-gradient(135deg,#ffc2d6,#ff9dbd);
+    border-color:transparent; color:#fff;
+  }
+  .grille.fini .case{ cursor:default; }
+
+  /* ---------- liste des mots ---------- */
+  .mots{
+    display:flex; flex-wrap:wrap; gap:7px; justify-content:center;
+    margin-bottom:14px;
+  }
+  .mots span{
+    font-size:13px; font-weight:700; letter-spacing:.04em;
+    padding:7px 13px; border-radius:999px;
+    background:rgba(255,255,255,.85);
+    border:1px solid #ffd0e0; color:var(--texte);
+    transition:opacity .25s ease;
+  }
+  .mots span.trouve{
+    background:var(--rose-clair); border-color:transparent;
+    color:var(--rose-fonce); text-decoration:line-through; opacity:.55;
+  }
+
+  .message{
+    text-align:center; font-size:13.5px; font-weight:700;
+    color:var(--rose-profond); min-height:20px; margin-bottom:10px;
+  }
+
+  /* ---------- fin ---------- */
+  .fin{
+    background:#fff; border:1px solid #ffd0e0; border-radius:20px;
+    padding:22px 18px; text-align:center; margin-bottom:16px;
+    box-shadow:0 18px 40px -24px rgba(232,67,122,.6);
+    animation:apparait .5s cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes apparait{ from{ opacity:0; transform:translateY(12px); } to{ opacity:1; } }
+  .fin h2{ font-size:23px; color:var(--rose-profond); margin-bottom:6px; }
+  .fin .temps{
+    font-size:40px; font-weight:800; color:var(--rose-profond);
+    font-variant-numeric:tabular-nums; margin:8px 0 4px;
+  }
+  .fin p{ font-size:13.5px; color:var(--gris); line-height:1.6; }
+  .fin .record{
+    display:inline-block; margin-top:10px; padding:6px 15px; border-radius:999px;
+    background:var(--rose-clair); color:var(--rose-profond);
+    font-size:12.5px; font-weight:800;
+  }
+  .fin button{
+    font-family:inherit; font-size:14px; font-weight:800; cursor:pointer;
+    margin-top:15px; padding:12px 24px; border-radius:999px; border:none;
+    background:linear-gradient(135deg,var(--rose-fonce),var(--rose-profond));
+    color:#fff; box-shadow:0 10px 22px -10px rgba(232,67,122,.85);
+  }
+
+  .erreur{
+    background:#fff; border:1px solid #ffd0e0; border-radius:14px;
+    padding:18px; font-size:14px; line-height:1.6;
+  }
+  .erreur code{ background:var(--rose-clair); padding:2px 6px; border-radius:5px; font-size:13px; }
+</style>
+</head>
+<body>
+
+<div class="motif"></div>
+<div class="coeurs" id="coeurs"></div>
+
+<nav class="nav"><a href="index.html">← Accueil</a></nav>
+
+<div class="page">
+  <header>
+    <div class="surtitre">Mots mêlés</div>
+    <h1>La grille du mercredi 💗</h1>
+    <div class="theme" id="theme">…</div>
+    <div class="semaine" id="semaine"></div>
+  </header>
+
+  <main id="contenu"></main>
+</div>
+
+<script>
+  /* Paramètre anti-cache : GitHub Pages sert les fichiers avec
+     « Cache-Control: max-age=600 », donc une grille modifiée pourrait mettre
+     dix minutes à apparaître. document.write charge le script de façon
+     synchrone, avant le code du jeu ci-dessous. */
+  document.write('<script src="melees.js?v=' + Date.now() + '"><\/script>');
+</script>
+<script>
+(function () {
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+
+  function depuisBase64(b64) {
+    const binaire = atob(b64);
+    const octets = Uint8Array.from(binaire, (c) => c.charCodeAt(0));
+    return new TextDecoder().decode(octets);
+  }
+
+  /* Date locale : surtout pas toISOString, qui bascule de jour en UTC. */
+  function cleDuJour(d) {
+    const j = d || new Date();
+    return j.getFullYear() + "-" +
+      String(j.getMonth() + 1).padStart(2, "0") + "-" +
+      String(j.getDate()).padStart(2, "0");
+  }
+
+  function chrono(secondes) {
+    const m = Math.floor(secondes / 60);
+    const s = Math.floor(secondes % 60);
+    return m + ":" + String(s).padStart(2, "0");
+  }
+
+  const AUJOURDHUI = cleDuJour();
+
+  /* =====================================================================
+     Chargement de la grille de la semaine
+     ===================================================================== */
+  let grille = null, SEMAINE = null;
+  try {
+    if (typeof MELEES !== "undefined") {
+      const dispo = Object.keys(MELEES).sort();
+      // la grille en cours, sinon la première publiée si aucune n'a démarré
+      SEMAINE = dispo.filter((d) => d <= AUJOURDHUI).pop() || dispo[0];
+      if (SEMAINE) grille = JSON.parse(depuisBase64(MELEES[SEMAINE]));
+    }
+  } catch (e) { grille = null; }
+
+  if (!grille) {
+    $("contenu").innerHTML =
+      '<div class="erreur"><b>La grille n\'a pas pu être chargée.</b><br><br>' +
+      'Vérifier que <code>melees.js</code> est bien dans le même dossier que ' +
+      '<code>melees.html</code>, puis recharger la page.</div>';
+    return;
+  }
+
+  const N = grille.n;
+  const MOTS = grille.m;
+  const LETTRES = grille.g;                    // N*N caractères, ligne par ligne
+  const SENS = { E: [0, 1], S: [1, 0], SE: [1, 1], NE: [-1, 1] };
+  const PENALITE = 30;
+
+  $("theme").textContent = grille.t;
+  $("semaine").textContent = "Semaine du " +
+    new Date(SEMAINE + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+
+  const lettre = (r, c) => LETTRES[r * N + c];
+  const cle = (r, c) => r + "," + c;
+
+  /* =====================================================================
+     Sauvegarde
+     ===================================================================== */
+  const CLE_PARTIE = "melees:partie:" + SEMAINE;
+  const CLE_RECORD = "melees:record:" + SEMAINE;
+
+  function lire(k, defaut) {
+    try { const b = localStorage.getItem(k); return b ? JSON.parse(b) : defaut; }
+    catch (e) { return defaut; }
+  }
+  function ecrire(k, v) {
+    try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* tant pis */ }
+  }
+
+  if (location.search.indexOf("reset") !== -1) {
+    try {
+      Object.keys(localStorage)
+        .filter((c) => c.indexOf("melees:") === 0)
+        .forEach((c) => localStorage.removeItem(c));
+    } catch (e) { /* stockage indisponible */ }
+    location.replace(location.pathname);
+    return;
+  }
+
+  // trouves : { MOT: [[r,c], ...] } — les cases telles qu'elles ont été tracées
+  const partie = lire(CLE_PARTIE, {
+    trouves: {}, reveles: [], ecoule: 0, penalites: 0, demarre: false, fini: false,
+  });
+
+  /* =====================================================================
+     Affichage
+     ===================================================================== */
+  $("contenu").innerHTML =
+    '<div class="barre">' +
+      '<div class="chrono"><b id="pendule">0:00</b><small id="detail"></small></div>' +
+      '<div class="compteur" id="compteur"></div>' +
+      '<div class="outils"><button type="button" id="aide">Un mot (+30 s)</button></div>' +
+    '</div>' +
+    '<div id="apres"></div>' +
+    '<div class="message" id="message"></div>' +
+    '<div class="grille-zone"><div class="grille" id="grille"></div></div>' +
+    '<div class="mots" id="mots"></div>';
+
+  document.documentElement.style.setProperty(
+    "--case", "min(40px, calc((100vw - " + (28 + (N - 1) * 2) + "px) / " + N + "))"
+  );
+
+  const zone = $("grille");
+  zone.style.gridTemplateColumns = "repeat(" + N + ", var(--case))";
+
+  const cases = {};
+  for (let r = 0; r < N; r++) {
+    for (let c = 0; c < N; c++) {
+      const el = document.createElement("div");
+      el.className = "case";
+      el.textContent = lettre(r, c);
+      el.dataset.r = r;
+      el.dataset.c = c;
+      zone.appendChild(el);
+      cases[cle(r, c)] = el;
+    }
+  }
+
+  let selection = [];
+
+  function rafraichir() {
+    const trouvees = {}, revelees = {};
+    Object.keys(partie.trouves).forEach((mot) => {
+      const marque = partie.reveles.indexOf(mot) !== -1 ? revelees : trouvees;
+      partie.trouves[mot].forEach(([r, c]) => { marque[cle(r, c)] = true; });
+    });
+    const enCours = {};
+    selection.forEach((p) => { enCours[cle(p.r, p.c)] = true; });
+
+    Object.keys(cases).forEach((k) => {
+      const el = cases[k];
+      el.classList.toggle("trouve", !!trouvees[k]);
+      el.classList.toggle("revele", !trouvees[k] && !!revelees[k]);
+      el.classList.toggle("selection", !!enCours[k]);
+    });
+
+    const liste = $("mots");
+    liste.innerHTML = "";
+    MOTS.forEach((mot) => {
+      const s = document.createElement("span");
+      s.textContent = mot.m;
+      if (partie.trouves[mot.m]) s.classList.add("trouve");
+      liste.appendChild(s);
+    });
+
+    const n = Object.keys(partie.trouves).length;
+    $("compteur").textContent = n + " / " + MOTS.length;
+    $("aide").disabled = partie.fini;
+    zone.classList.toggle("fini", partie.fini);
+  }
+
+  /* =====================================================================
+     Sélection au glissé
+     ===================================================================== */
+
+  /** Ramène deux cases à une ligne droite : horizontale, verticale ou
+      diagonale à 45°. Une direction approximative est rabattue sur la plus
+      proche, sinon le tracé serait impossible à réussir au doigt. */
+  function ligne(r0, c0, r1, c1) {
+    let dr = r1 - r0, dc = c1 - c0;
+    const adr = Math.abs(dr), adc = Math.abs(dc);
+    let sr, sc, n;
+
+    if (adr === 0 && adc === 0)      { return [{ r: r0, c: c0 }]; }
+    else if (adc === 0)              { sr = Math.sign(dr); sc = 0; n = adr; }
+    else if (adr === 0)              { sr = 0; sc = Math.sign(dc); n = adc; }
+    else if (adr === adc)            { sr = Math.sign(dr); sc = Math.sign(dc); n = adr; }
+    else if (adr / adc > 2)          { sr = Math.sign(dr); sc = 0; n = adr; }
+    else if (adr / adc < 0.5)        { sr = 0; sc = Math.sign(dc); n = adc; }
+    else                             { sr = Math.sign(dr); sc = Math.sign(dc); n = Math.round((adr + adc) / 2); }
+
+    const out = [];
+    for (let i = 0; i <= n; i++) {
+      const r = r0 + sr * i, c = c0 + sc * i;
+      if (r < 0 || r >= N || c < 0 || c >= N) break;
+      out.push({ r: r, c: c });
+    }
+    return out;
+  }
+
+  function caseSous(x, y) {
+    const el = document.elementFromPoint(x, y);
+    if (!el) return null;
+    const c = el.closest(".case");
+    if (!c || c.dataset.r === undefined) return null;
+    return { r: +c.dataset.r, c: +c.dataset.c };
+  }
+
+  let depart = null;
+
+  zone.addEventListener("pointerdown", (e) => {
+    if (partie.fini) return;
+    const p = caseSous(e.clientX, e.clientY);
+    if (!p) return;
+    e.preventDefault();
+    demarrer();
+    depart = p;
+    selection = [p];
+    rafraichir();
+  });
+
+  window.addEventListener("pointermove", (e) => {
+    if (!depart) return;
+    e.preventDefault();
+    const p = caseSous(e.clientX, e.clientY);
+    if (!p) return;
+    selection = ligne(depart.r, depart.c, p.r, p.c);
+    rafraichir();
+  }, { passive: false });
+
+  window.addEventListener("pointerup", () => {
+    if (!depart) return;
+    valider(selection);
+    depart = null;
+    selection = [];
+    rafraichir();
+  });
+
+  window.addEventListener("pointercancel", () => {
+    depart = null;
+    selection = [];
+    rafraichir();
+  });
+
+  /** On valide sur les lettres tracées, pas sur les coordonnées attendues :
+      le mot est accepté quel que soit le sens du glissé, et même s'il
+      apparaît ailleurs par hasard dans le remplissage. */
+  function valider(cellules) {
+    if (cellules.length < 2) return;
+
+    const lu = cellules.map((p) => lettre(p.r, p.c)).join("");
+    const alEnvers = lu.split("").reverse().join("");
+
+    const mot = MOTS.find((x) =>
+      !partie.trouves[x.m] && (x.m === lu || x.m === alEnvers)
+    );
+    if (!mot) return;
+
+    partie.trouves[mot.m] = cellules.map((p) => [p.r, p.c]);
+    sauver();
+    annoncer(mot.m + " ✓");
+    for (let i = 0; i < 6; i++) setTimeout(unCoeur, i * 60);
+    verifierFin();
+  }
+
+  /* =====================================================================
+     Aide
+     ===================================================================== */
+  $("aide").addEventListener("click", () => {
+    if (partie.fini) return;
+    const restants = MOTS.filter((x) => !partie.trouves[x.m]);
+    if (!restants.length) return;
+
+    demarrer();
+    const mot = restants[Math.floor(Math.random() * restants.length)];
+    const [dr, dc] = SENS[mot.d];
+    const cellules = [];
+    for (let k = 0; k < mot.m.length; k++) cellules.push([mot.r + dr * k, mot.c + dc * k]);
+
+    partie.trouves[mot.m] = cellules;
+    partie.reveles.push(mot.m);
+    partie.penalites += PENALITE;
+    sauver();
+    rafraichir();
+    afficherChrono();
+    annoncer(mot.m + " était là 👀");
+    verifierFin();
+  });
+
+  function annoncer(txt) {
+    $("message").textContent = txt;
+    clearTimeout(annoncer.t);
+    annoncer.t = setTimeout(() => { $("message").textContent = ""; }, 2500);
+  }
+
+  /* =====================================================================
+     Chrono
+     ===================================================================== */
+  let enMarche = false, debut = 0;
+
+  function demarrer() {
+    if (partie.fini || enMarche) return;
+    partie.demarre = true;
+    enMarche = true;
+    debut = Date.now();
+  }
+  function secondes() {
+    return partie.ecoule + (enMarche ? Math.floor((Date.now() - debut) / 1000) : 0);
+  }
+  function figer() {
+    if (!enMarche) return;
+    partie.ecoule += Math.floor((Date.now() - debut) / 1000);
+    enMarche = false;
+    sauver();
+  }
+  function afficherChrono() {
+    $("pendule").textContent = chrono(secondes() + partie.penalites);
+    $("detail").innerHTML = partie.penalites
+      ? 'dont <span class="penalite">+' + chrono(partie.penalites) + "</span>"
+      : (partie.demarre ? "" : "prêt");
+  }
+  setInterval(() => { if (!partie.fini) afficherChrono(); }, 500);
+
+  // mise en pause quand l'onglet passe en arrière-plan ou que l'écran se verrouille
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) figer();
+    else if (partie.demarre && !partie.fini) demarrer();
+  });
+  window.addEventListener("pagehide", figer);
+
+  /* =====================================================================
+     Fin
+     ===================================================================== */
+  function verifierFin() {
+    if (Object.keys(partie.trouves).length < MOTS.length) { rafraichir(); return; }
+
+    figer();
+    partie.fini = true;
+    partie.total = partie.ecoule + partie.penalites;
+
+    const record = lire(CLE_RECORD, null);
+    const nouveau = record === null || partie.total < record;
+    if (nouveau) ecrire(CLE_RECORD, partie.total);
+
+    sauver();
+    rafraichir();
+    for (let i = 0; i < 30; i++) setTimeout(unCoeur, i * 55);
+    afficherFin(nouveau && record !== null);
+  }
+
+  function afficherFin(record) {
+    const t = partie.total !== undefined ? partie.total : partie.ecoule + partie.penalites;
+    const aides = partie.reveles.length;
+
+    let html = '<div class="fin"><h2>Tous trouvés 💕</h2>';
+    html += '<div class="temps">' + chrono(t) + "</div>";
+    html += "<p>" + MOTS.length + " mots";
+    if (partie.penalites) html += " · dont " + chrono(partie.penalites) + " de pénalités";
+    if (aides) html += " · " + aides + (aides > 1 ? " mots révélés" : " mot révélé");
+    html += "</p>";
+    if (record) html += '<div class="record">Nouveau record de la semaine</div>';
+    html += '<button type="button" id="partager">Partager mon temps 💗</button></div>';
+
+    $("apres").innerHTML = html;
+    $("pendule").textContent = chrono(t);
+    $("partager").addEventListener("click", partager);
+  }
+
+  function texteDePartage() {
+    const t = partie.total !== undefined ? partie.total : partie.ecoule + partie.penalites;
+    let s = "💗 Mots mêlés — " + grille.t + "\n";
+    s += "Semaine du " + SEMAINE.split("-").reverse().join("/") + " · " + MOTS.length + " mots\n";
+    s += "Tous trouvés en " + chrono(t);
+    if (partie.penalites) s += " (dont " + chrono(partie.penalites) + " de pénalités)";
+    return s;
+  }
+
+  function partager() {
+    const texte = texteDePartage();
+    const b = $("partager");
+    const ok = () => {
+      b.textContent = "Copié ✓";
+      setTimeout(() => { b.textContent = "Partager mon temps 💗"; }, 2500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(texte).then(ok, () => secours(texte, ok));
+    } else secours(texte, ok);
+  }
+
+  /* Sans HTTPS, navigator.clipboard n'existe pas : on passe par un textarea. */
+  function secours(texte, ok) {
+    const z = document.createElement("textarea");
+    z.value = texte;
+    z.style.position = "fixed"; z.style.opacity = "0";
+    document.body.appendChild(z);
+    z.select();
+    try { document.execCommand("copy"); ok(); } catch (e) { alert(texte); }
+    z.remove();
+  }
+
+  /* =====================================================================
+     Décor
+     ===================================================================== */
+  const EMOJIS = ["💕", "💖", "💗", "💓", "❤️"];
+
+  function unCoeur() {
+    const c = document.createElement("span");
+    c.className = "coeur-flottant";
+    c.textContent = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+    c.style.left = Math.random() * 100 + "%";
+    c.style.fontSize = 13 + Math.random() * 16 + "px";
+    c.style.animationDuration = 7 + Math.random() * 5 + "s";
+    c.style.setProperty("--tourne", Math.random() * 100 - 50 + "deg");
+    $("coeurs").appendChild(c);
+    c.addEventListener("animationend", () => c.remove());
+  }
+  setInterval(unCoeur, 2000);
+
+  /* =====================================================================
+     Démarrage
+     ===================================================================== */
+  function sauver() { ecrire(CLE_PARTIE, partie); }
+
+  rafraichir();
+  afficherChrono();
+
+  if (partie.fini) afficherFin(false);
+  else if (partie.demarre) annoncer("On reprend où tu t'étais arrêtée");
+})();
+</script>
+</body>
+</html>
