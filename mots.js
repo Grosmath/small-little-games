@@ -6,7 +6,7 @@
    Format d'une ligne :  "AAAA-MM-JJ": "chaine-encodee",
 
    Chaque chaine encode un objet { m: le mot, i: [indice 1, indice 2] }.
-   Les lignes encodees sont produites par admin.html.
+   Les lignes encodees sont produites par admin.html ou par le generateur.
 
    L'encodage base64 sert uniquement a rendre les mots illisibles a la simple
    lecture du fichier. Ce n'est pas du chiffrement : la chaine reste
@@ -21,6 +21,18 @@ const CALENDRIER = {
   "2026-08-03": "eyJtIjoiVk9ZQUdFIiwiaSI6WyJDZSBxdSdvbiBwcsOpcGFyZSBlbnNlbWJsZSIsIlZhbGlzZSBvYmxpZ2F0b2lyZSJdfQ==",
   "2026-08-04": "eyJtIjoiVEVORFJFU1NFIiwiaSI6WyJFbmNvcmUgcGx1cyBkb3V4IHF1ZSBsJ2Ftb3VyIiwiTmV1ZiBsZXR0cmVzIGRlIGPDomxpbnMiXX0=",
   "2026-08-05": "eyJtIjoiQk9OSEVVUiIsImkiOlsiQ2UgcXVlIHR1IG0nYXBwb3J0ZXMiLCJTaW1wbGUsIGV0IGltbWVuc2UiXX0=",
+  "2026-09-04": "eyJtIjoiUkFZT05OQU5URSIsImkiOlsiTGEgcHJlbWnDqHJlIGNob3NlIHF1ZSBqJ2FpIHJlbWFycXXDqWUgY2hleiB0b2kiLCJUdSBsZSBmYWlzIHNhbnMgdCdlbiByZW5kcmUgY29tcHRlIl19",
+  "2026-09-05": "eyJtIjoiUEFSRlVNIiwiaSI6WyJMYSBtZWlsbGV1cmUgZGUgdG91dGVzIGxlcyBvZGV1cnMiLCJQYXJpcy1WZW5pc2UiXX0=",
+  "2026-09-06": "eyJtIjoiTU9OVFJFQUwiLCJpIjpbIkluZGllbiBsJ8OpdMOpLCBmcm9pZCBsJ2hpdmVyIiwiVGEgcHJvY2hhaW5lIGRlc3RpbmF0aW9uIHZhY2FuY2VzIGVuIGFtb3VyZXV4Il19",
+  "2026-09-07": "eyJtIjoiw4lWSURFTkNFIiwiaSI6WyJDZSBxdWUgYyfDqXRhaXQsIGTDqHMgbGUgcHJlbWllciBqb3VyIiwiSHVpdCBsZXR0cmVzLCBldCBhdWN1bmUgaMOpc2l0YXRpb24iXX0=",
+  "2026-09-08": "eyJtIjoiQ09VRVRURSIsImkiOlsiT24gbCdlbmzDqHZlIHZpdGUgcXVhbmQgaWwgZmFpdCB0cm9wIGNoYXVkIiwiSmUgcHLDqWbDqHJlIHF1YW5kIGMnZXN0IHRvaSJdfQ==",
+  "2026-09-09": "eyJtIjoiTFVNScOIUkUiLCJpIjpbIkNlIHF1ZSB0dSBtZXRzIGRhbnMgbWVzIGpvdXJuw6llcyIsIkVsbGUgdHJhdmVyc2UgbGVzIHJpZGVhdXggYXUgcsOpdmVpbCJdfQ==",
+  "2026-09-10": "eyJtIjoiQVZFTlRVUkUiLCJpIjpbIkNlIHF1J29uIHZpdCB0b3VzIGxlcyBkZXV4IiwiSmUgdmV1eCB0b3V0ZXMgbGVzIGZhaXJlIGF2ZWMgdG9pIl19",
+  "2026-09-11": "eyJtIjoiT1VSU09OIiwiaSI6WyJJbWJpYsOpIGRlIHBhcmZ1bSIsIkRlcyBncm9zIGPDomxpbnMgZW4gYXR0ZW5kYW50IGRlIHRlIHJldHJvdXZlciJdfQ==",
+  "2026-09-12": "eyJtIjoiUEhPVE9TIiwiaSI6WyJOb3MgbWVpbGxldXJzIHNvdXZlbmlycyBwaHlzaXF1ZXMiLCJQb3VyIGTDqWNvcmVyIG5vcyBjaGFtYnJlcyBldCB0b3Vqb3VycyBwZW5zZXIgw6Agbm91cyJdfQ==",
+  "2026-09-13": "eyJtIjoiw4lUT0lMRVMiLCJpIjpbIkNlIGNvbW1lIHF1b2kgdHUgYnJpbGxlcyIsIklsIHkgZW4gYSBwbGVpbiBkYW5zIHRlcyB5ZXV4Il19",
+  "2026-09-14": "eyJtIjoiTUFMVEUiLCJpIjpbIk9uIHkgYSDDqWNoYW5nw6kgYmVhdWNvdXAgZGUgYmlzb3VzIGNldCDDqXTDqS4uLiIsIlNvaXLDqWVzLCBwbGFnZXMsIG3DqWRpdGVycmFuw6kiXX0=",
+  "2026-09-15": "eyJtIjoiRlJJU1NPTiIsImkiOlsiSidlbiBhaSBwbGVpbiByaWVuIHF1J2VuIHBlbnNhbnQgw6AgdG9pIiwiQ2UgcXVlIHR1IHJlc3NlbnMgcXVhbmQgamUgdGUgY2FyZXNzZSJdfQ==",
 };
 
 /* Liste de secours, utilisee automatiquement quand aucun mot n'est prevu pour
